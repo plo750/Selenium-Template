@@ -1,38 +1,56 @@
-package com.j4me.base;
+package com.j4me.factory;
+
 
 import io.github.bonigarcia.wdm.WebDriverManager;
+import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
-import org.openqa.selenium.safari.SafariDriver;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import org.testng.annotations.*;
+
+import java.util.concurrent.TimeUnit;
 
 /**
- * Created by pedro at 13.03.21
+ * Created by pedro at 22.03.21
  */
-public class WebDriverSetup {
+public class BrowserDriverFactory {
 
-    protected WebDriver driver;
-    protected WebDriverWait wait;
+    protected Logger log;
+    protected String browser;
 
-
-    void sleep(int milliseonds) {
-        try {
-            Thread.sleep(milliseonds);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+    /**
+     *
+     * @param browser
+     * @param log
+     */
+    public BrowserDriverFactory(String browser, Logger log) {
+        this.browser = browser;
+        this.log = log;
     }
 
-    // The annotated method will be run before the first test method in the current class is invoked.
-    @Parameters({"selectedDriver"})
-    @BeforeClass(alwaysRun = true)
-    public void setupTest(@Optional("selectedDriver") String selectedDriver) {
-        System.out.println("Before class");
-        switch( selectedDriver) {
+    /**
+     *
+     * @param driver
+     * @return
+     */
+    public WebDriverWait createDriverWait( WebDriver driver) {
+        // Explicit wait default timeout
+        // Selenium 4
+        //wait = new WebDriverWait(driver, Duration.ofSeconds(10) );
+        // Selenium 3
+        return new WebDriverWait(driver, 10);
+    }
+
+    /**
+     *
+     * @return
+     */
+    public WebDriver createDriver() {
+        WebDriver driver = null;
+        log.info("Before class");
+        switch (browser) {
             case "chrome":
-                System.out.println("Chrome selected");
+                log.info("Chrome selected");
                 WebDriverManager.chromedriver().setup();
                 driver = new ChromeDriver();
 
@@ -40,7 +58,7 @@ public class WebDriverSetup {
 //                driver = new ChromeDriver();
                 break;
             case "firefox":
-                System.out.println("Firefox selected");
+                log.info("Firefox selected");
                 WebDriverManager.firefoxdriver().setup();
                 driver = new FirefoxDriver();
 
@@ -61,23 +79,18 @@ public class WebDriverSetup {
         }
         if( driver != null) {
             driver.manage().window().maximize();
-            // Implicit wait default
-            //driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
-
-            // Explicit wait default timeout
-            // Selenium 4
-            //wait = new WebDriverWait(driver, Duration.ofSeconds(10) );
-            // Selenium 3
-            wait = new WebDriverWait(driver, 10);
         }
-
+        return driver;
     }
 
-    @AfterTest(alwaysRun = true)
-    public void teardown() {
-        System.out.println("teardown called");
-        if (driver != null) {
-            //driver.quit();
-        }
+    /**
+     *
+     * @param driver
+     * @param timeout
+     */
+    public void setDefaultTimeout(WebDriver driver, Long timeout) {
+        // Implicit wait default
+        driver.manage().timeouts().implicitlyWait(timeout, TimeUnit.SECONDS);
     }
 }
+

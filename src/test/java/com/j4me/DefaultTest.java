@@ -1,12 +1,16 @@
 package com.j4me;
 
-import com.j4me.base.WebDriverSetup;
+import com.j4me.base.BasePage;
+import com.j4me.factory.BrowserDriverFactory;
+import org.apache.logging.log4j.LogManager;
+import org.openqa.selenium.WebDriver;
+import org.testng.ITestContext;
 import org.testng.annotations.*;
 
 /**
  * Created by pedro at 22.02.21
  */
-public class DefaultTest extends WebDriverSetup {
+public class DefaultTest extends BasePage {
 
 //      BeforeSuite
 //          '   BeforeTest
@@ -18,8 +22,17 @@ public class DefaultTest extends WebDriverSetup {
 //          '   AfterTest
 //      AfterSuite
 
+    protected WebDriver driver;
+
+    @Parameters({ "browser" })
     @Test
-    public void newTest() {
+    public void newTest(String browser, ITestContext ctx) {
+
+        log.info("Starting negativeTest");
+        BrowserDriverFactory factory = new BrowserDriverFactory(browser, log);
+
+        driver = factory.createDriver();
+
         String url = "http://the-internet.herokuapp.com/login";
         driver.get(url);
         return;
@@ -28,7 +41,7 @@ public class DefaultTest extends WebDriverSetup {
     @AfterClass( alwaysRun = true )
     void closeDriver() {
         if( driver != null) {
-            System.out.println("closeDriver called!");
+            log.info("closeDriver called!");
             driver.quit();
         }
     }
